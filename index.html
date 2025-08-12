@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(120deg, #89f7fe 0%, #66a6ff 100%);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            max-width: 420px;
+            width: 100%;
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(102,166,255,0.18);
+            padding: 40px 32px 32px 32px;
+            text-align: center;
+            position: relative;
+        }
+        h1 {
+            margin-bottom: 28px;
+            color: #2d3a4a;
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        .input-group {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 28px;
+        }
+        input[type="text"] {
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid #b3c6e0;
+            width: 65%;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+        input[type="text"]:focus {
+            border-color: #66a6ff;
+            outline: none;
+        }
+        button {
+            padding: 10px 18px;
+            border-radius: 10px;
+            border: none;
+            background: linear-gradient(90deg, #66a6ff 0%, #89f7fe 100%);
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(102,166,255,0.12);
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: linear-gradient(90deg, #89f7fe 0%, #66a6ff 100%);
+        }
+        .weather-info {
+            margin-top: 18px;
+            padding: 24px 18px;
+            background: #f7fbff;
+            border-radius: 14px;
+            box-shadow: 0 2px 8px rgba(102,166,255,0.08);
+            font-size: 1.1rem;
+            color: #2d3a4a;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .weather-info .label {
+            font-weight: 600;
+            color: #2193b0;
+        }
+        .loading {
+            font-size: 1.1rem;
+            color: #888;
+            margin-top: 18px;
+        }
+        .weather-icon {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 10px;
+        }
+        @media (max-width: 500px) {
+            .container {
+                padding: 18px 8px;
+            }
+            .weather-info {
+                padding: 12px 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Weather App</h1>
+        <div class="input-group">
+            <input type="text" id="cityInput" placeholder="Enter city name">
+            <button onclick="getWeather()">Get Weather</button>
+        </div>
+        <div class="weather-info" id="weatherInfo">
+            <div class="label">Enter a city to see the weather!</div>
+        </div>
+        <div class="loading" id="loading" style="display:none;">Loading...</div>
+    </div>
+    <script>
+        const weatherInfo = document.getElementById('weatherInfo');
+        const loading = document.getElementById('loading');
+        const cityInput = document.getElementById('cityInput');
+
+        async function getWeather() {
+            const city = cityInput.value.trim();
+            if (!city) {
+                weatherInfo.innerHTML = `<div class='label'>Please enter a city name.</div>`;
+                return;
+            }
+            loading.style.display = 'block';
+            weatherInfo.style.opacity = '0.5';
+            const apiKey = 'c7d6d82b531b6009493be5b3aba5ae4a'; // Replace with your own API key for production
+            const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric`;
+            try {
+                const response = await fetch(url);
+                loading.style.display = 'none';
+                weatherInfo.style.opacity = '1';
+                if (response.ok) {
+                    const data = await response.json();
+                    weatherInfo.innerHTML =
+                        `<img src='https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png' alt='Weather icon' class='weather-icon' />` +
+                        `<div class='label'>Weather for ${data.name}, ${data.sys.country}</div>` +
+                        `<div>Weather is: <b>${data.weather[0].description}</b></div>` +
+                        `<div>Current temperature: <b>${data.main.temp} °C</b></div>` +
+                        `<div>Current Temperature feels like: <b>${data.main.feels_like} °C</b></div>` +
+                        `<div>Humidity: <b>${data.main.humidity} %</b></div>`;
+                } else {
+                    weatherInfo.innerHTML =
+                        `<div class='label'>City not found</div>` +
+                        `<div>Weather is: --</div>` +
+                        `<div>Current temperature: -- °C</div>` +
+                        `<div>Current Temperature feels like: -- °C</div>` +
+                        `<div>Humidity: -- %</div>`;
+                }
+            } catch (error) {
+                loading.style.display = 'none';
+                weatherInfo.style.opacity = '1';
+                weatherInfo.innerHTML =
+                    `<div class='label'>Error connecting to API</div>` +
+                    `<div>Weather is: --</div>` +
+                    `<div>Current temperature: -- °C</div>` +
+                    `<div>Current Temperature feels like: -- °C</div>` +
+                    `<div>Humidity: -- %</div>`;
+            }
+        }
+
+        cityInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                getWeather();
+            }
+        });
+    </script>
+</body>
+</html>
